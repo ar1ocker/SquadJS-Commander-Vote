@@ -36,12 +36,12 @@ export default class CMDVote extends BasePlugin {
       minSquadSizeForVote: {
         required: false,
         description: 'Минимальный размер сквада для зачета голоса',
-        default: 3
+        default: 2
       },
       minSquadsForStart: {
         required: false,
         description: 'Минимальное количество сквадов за сторону после которого активна команда',
-        default: 5
+        default: 4
       },
       minSquadsVotePercent: {
         required: false,
