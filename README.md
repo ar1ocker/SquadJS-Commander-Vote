@@ -1,2 +1,2 @@
-# SquadJS-Commander-Vote
+# Squad-Commander-Vote
 Голосование запускаемое командиром стороны (CMD) для разжалования командира отряда
