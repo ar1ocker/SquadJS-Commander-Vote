@@ -152,10 +152,12 @@ class Vote {
     this.server.on('CHAT_MESSAGE', this.messageProcessing);
     this.endVoteTimer = setTimeout(this.end, this.options.endVoteTimeout * 1000);
 
+    await this.warnSquadLeaders(`Снимаем командира ${this.squadIDForDemotion} отряда, ${this.leaderForDemotion.name}? +/- в чат`)
+
     this.periodicallyMessageTimer = setInterval(
       this.warnSquadLeaders,
       this.options.periodicallyMessageTimeout * 1000,
-      `Голосование за снятие командира ${this.squadIDForDemotion} отряда, ${this.leaderForDemotion.name}, +/- в чат`
+      `Снимаем командира ${this.squadIDForDemotion} отряда, ${this.leaderForDemotion.name}? +/- в чат`
     );
 
     // this.verbose(`Голосование за снятие командира запущено`);
@@ -181,24 +183,25 @@ class Vote {
     this.lastVoteTime = new Date().valueOf();
     this.isStarted = false;
 
-    let [countPositively, countAgainst, countAllValidVoted] = await this.getResult();
+    let [countPositively, countAgainst, countAllValid, countAllVoted] = await this.getResult();
 
     const countMinSquads = Math.floor(
-      countAllValidVoted * this.options.minSquadsVotePercent
+      countAllValid * this.options.minSquadsVotePercent
     );
 
-    // this.verbose(`Окончание голосования, за ${countPositively}, против ${countAgainst}`)
-    if (countAllValidVoted >= countMinSquads) {
+    // this.verbose(`Окончание голосования, за ${countPositively}, против ${countAgainst}. валидных ${countAllValid}, проголосовавших ${countAllVoted}`)
+
+    if (countAllVoted <= countMinSquads) {
       await this.warnSquadLeaders(`Командир ${this.squadIDForDemotion} отряда оставлен в должности, проголосовало меньше ${this.options.minSquadsVotePercent * 100}% отрядов (меньше ${countMinSquads})`);
       return;
     }
 
     if (countPositively <= countAgainst) {
-      await this.warnSquadLeaders(`Командир ${this.squadIDForDemotion} отряда оставлен в должности, за ${countPositively}, против ${countAgainst}, имели право голоса ${countAllValidVoted}`);
+      await this.warnSquadLeaders(`Командир ${this.squadIDForDemotion} отряда оставлен в должности, за ${countPositively}, против ${countAgainst}, имели право голоса ${countAllValid}`);
       return;
     }
 
-    await this.warnSquadLeaders(`Командир ${this.squadIDForDemotion} отряда снят с должности, за ${countPositively}, против ${countAgainst}, имели право голоса ${countAllValidVoted}`);
+    await this.warnSquadLeaders(`Командир ${this.squadIDForDemotion} отряда снят с должности, за ${countPositively}, против ${countAgainst}, имели право голоса ${countAllValid}`);
 
     // На всякий случай получаем пользователя, чтобы не кикнуть другого игрока,
     // т.к. удаление игрока из сквада идёт по переиспользуемому ID
@@ -220,7 +223,7 @@ class Vote {
 
     let countAgainst = 0;
     let countPositively = 0;
-    let countAllValidVoted = validSquadsIds.length;
+    let countAllValid = validSquadsIds.length;
 
     for (let [squadID, vote] of this.votes) {
       if (validSquadsIds.includes(squadID)) {
@@ -228,7 +231,9 @@ class Vote {
       }
     }
 
-    return [countPositively, countAgainst, countAllValidVoted]
+    const countAllVoted = countPositively + countAgainst
+
+    return [countPositively, countAgainst, countAllValid, countAllVoted]
   }
 
   async startValidate(data) {
@@ -319,6 +324,8 @@ class Vote {
   }
 
   async warnSquadLeaders(message) {
+    await this.server.updatePlayerList()
+
     const players = await this.server.players.filter(
       (data) => {
         return data.teamID === this.teamID && data.isLeader;
