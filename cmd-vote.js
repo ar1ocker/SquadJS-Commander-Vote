@@ -46,7 +46,7 @@ export default class CMDVote extends BasePlugin {
       minSquadsVotePercent: {
         required: false,
         description: 'Минимальный процент проголосовавших для зачета результата, дробное значение',
-        default: 0.50
+        default: 0.35
       },
       periodicallyMessageTimeout: {
         required: false,
@@ -189,7 +189,7 @@ class Vote {
 
     // this.verbose(`Окончание голосования, за ${countPositively}, против ${countAgainst}`)
     if (countAllValidVoted >= countMinSquads) {
-      await this.warnSquadLeaders(`Командир ${this.squadIDForDemotion} отряда оставлен в должности, проголосовало меньше ${this.options.minSquadsVotePercent * 100}% отрядов (меньше ${countAllValidVoted})`);
+      await this.warnSquadLeaders(`Командир ${this.squadIDForDemotion} отряда оставлен в должности, проголосовало меньше ${this.options.minSquadsVotePercent * 100}% отрядов (меньше ${countMinSquads})`);
       return;
     }
 
