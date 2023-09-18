@@ -39,7 +39,7 @@ export default class CMDVote extends BasePlugin {
       minSquadSizeForVote: {
         required: false,
         description: 'Минимальный размер сквада для зачета голоса',
-        default: 2
+        default: 4
       },
       minSquadsForStart: {
         required: false,
@@ -49,17 +49,17 @@ export default class CMDVote extends BasePlugin {
       minSquadsVotePercent: {
         required: false,
         description: 'Минимальный процент проголосовавших для зачета результата, дробное значение',
-        default: 0.35
+        default: 0.40
       },
       periodicallyMessageTimeout: {
         required: false,
         description: 'Время между сообщениями о ходе голосования, в секундах',
-        default: 10
+        default: 8
       },
       timeoutBetweenVote: {
         required: false,
         description: 'Таймаут между голосованиями в секундах',
-        default: 120
+        default: 100
       }
     };
   }
