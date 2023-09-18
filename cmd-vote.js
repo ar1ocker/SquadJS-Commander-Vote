@@ -1,9 +1,12 @@
 import BasePlugin from './base-plugin.js';
 
+
+const [TEAM_ONE_ID, TEAM_TWO_ID] = ['1', '2']
+
 export default class CMDVote extends BasePlugin {
   static get description() {
     return (
-      'Голосование за расжалование командира сквада. Запускается командиром стороны'
+      'Голосование за разжалование командира сквада. Запускается командиром стороны'
     );
   }
 
@@ -65,11 +68,13 @@ export default class CMDVote extends BasePlugin {
     super(server, options, connectors);
 
     this.votes = new Map([
-        ['1', new Vote('1', this.server, this.options)],
-        ['2', new Vote('2', this.server, this.options)]
+        [TEAM_ONE_ID, new Vote(TEAM_ONE_ID, this.server, this.options)],
+        [TEAM_TWO_ID, new Vote(TEAM_TWO_ID, this.server, this.options)]
       ]
     );
+
     this.timeStartLastGame = 0;
+
     this.onStartVoteCommand = this.onStartVoteCommand.bind(this)
   }
 
@@ -101,6 +106,10 @@ export default class CMDVote extends BasePlugin {
   }
 }
 
+/**
+ * Голосование на кик сквадного из его же сквада через голосование запускаемое
+ * командиром стороны
+ */
 class Vote {
   constructor(teamID, server, options) {
     this.isStarted = false;
@@ -122,6 +131,12 @@ class Vote {
     this.endVoteTimer;
   }
 
+  /**
+   * Старт голосование, с валидацией сообщения, поиском сквада для которого
+   * запросили голосование и поиском игрока, который в текущий момент сквадом управляет
+   * @param {*} data
+   * @returns
+   */
   async start(data) {
     if (!await this.startValidate(data)) {
       // this.verbose('Запуск голосования не прошел валидацию');
@@ -163,12 +178,19 @@ class Vote {
     // this.verbose(`Голосование за снятие командира запущено`);
   }
 
+  /**
+   * Удаление всех таймаутов и остановка коллбеков
+   */
   clearTimeoutsAndListeners() {
     clearInterval(this.periodicallyMessageTimer)
     clearTimeout(this.endVoteTimer)
     this.server.removeListener('CHAT_MESSAGE', this.messageProcessing)
   }
 
+  /**
+   * ПОЛНАЯ обнуление объекта и остановка голосования, если оно идёт,
+   * например используется при старте новый игры
+   */
   clear() {
     this.clearTimeoutsAndListeners()
     this.lastVoteTime = 0
@@ -178,30 +200,34 @@ class Vote {
     this.leaderForDemotion = null;
   }
 
+  /**
+   * Коллбек окончания голосования, подсчитывает голоса, выдаёт результат и применяет меры к сквадному
+   * @returns
+   */
   async end() {
     this.clearTimeoutsAndListeners()
     this.lastVoteTime = new Date().valueOf();
     this.isStarted = false;
 
-    let [countPositively, countAgainst, countAllValid, countAllVoted] = await this.getResult();
+    let [countPositively, countAgainst, countValidSquads, countVotedSquads] = await this.getResult();
 
     const countMinSquads = Math.floor(
-      countAllValid * this.options.minSquadsVotePercent
+      countValidSquads * this.options.minSquadsVotePercent
     );
 
     // this.verbose(`Окончание голосования, за ${countPositively}, против ${countAgainst}. валидных ${countAllValid}, проголосовавших ${countAllVoted}`)
 
-    if (countAllVoted <= countMinSquads) {
+    if (countVotedSquads <= countMinSquads) {
       await this.warnSquadLeaders(`Командир ${this.squadIDForDemotion} отряда оставлен в должности, проголосовало меньше ${this.options.minSquadsVotePercent * 100}% отрядов (меньше ${countMinSquads})`);
       return;
     }
 
     if (countPositively <= countAgainst) {
-      await this.warnSquadLeaders(`Командир ${this.squadIDForDemotion} отряда оставлен в должности, за ${countPositively}, против ${countAgainst}, имели право голоса ${countAllValid}`);
+      await this.warnSquadLeaders(`Командир ${this.squadIDForDemotion} отряда оставлен в должности, за ${countPositively}, против ${countAgainst}, имели право голоса ${countValidSquads}`);
       return;
     }
 
-    await this.warnSquadLeaders(`Командир ${this.squadIDForDemotion} отряда снят с должности, за ${countPositively}, против ${countAgainst}, имели право голоса ${countAllValid}`);
+    await this.warnSquadLeaders(`Командир ${this.squadIDForDemotion} отряда снят с должности, за ${countPositively}, против ${countAgainst}, имели право голоса ${countValidSquads}`);
 
     // На всякий случай получаем пользователя, чтобы не кикнуть другого игрока,
     // т.к. удаление игрока из сквада идёт по переиспользуемому ID
@@ -211,6 +237,12 @@ class Vote {
     }
   }
 
+  /**
+   * Возвращает текущий ход голосования
+   * @returns array [Количество "За", Количество "Против",
+   * Количество сквадов которые имеют право голосовать,
+   * Количество сквадов которые проголосовали (из тех, что имеют на это право)]
+   */
   async getResult() {
     await this.server.updateSquadList()
     const validSquads = await this.server.squads.filter(
@@ -236,6 +268,11 @@ class Vote {
     return [countPositively, countAgainst, countAllValid, countAllVoted]
   }
 
+  /**
+   * Валидирует команда на начало голосование, кидает варны, если необходимо
+   * @param {object} data Данные, которые были переданы от ивента (steamID, playerID, message, etc...)
+   * @returns true если валидация успешна, false если нет
+   */
   async startValidate(data) {
     if (!(data.player.isLeader && data.player.squad.squadName === 'Command Squad')) {
       // this.verbose('Не сквадлид или неправильное название сквада')
@@ -279,6 +316,11 @@ class Vote {
     return true;
   }
 
+  /**
+   * Валидирует сообщение которое потенциально может быть голосом
+   * @param {object} data Данные, которые были переданы от ивента (steamID, playerID, message, etc...)
+   * @returns true если прошло валидацию, false если нет
+   */
   async messageValidate(data) {
     if (data.player.isLeader === false || data.player.squad === null) {
       return false;
@@ -303,9 +345,14 @@ class Vote {
     return true;
   }
 
+  /**
+   * В зависимости от содержания сообщения выставляет голос в Map
+   * @param {object} data Данные, которые были переданы от ивента (steamID, playerID, message, etc...)
+   * @returns
+   */
   async messageProcessing(data) {
     if (!await this.messageValidate(data)) {
-      // this.verbose(`Сообщение голосования не прошло валидацию ${data}`);
+      // this.verbose(`Сообщение голосования не прошло валидацию ${data.steamID}, ${data.message}`);
       return;
     }
 
@@ -323,6 +370,11 @@ class Vote {
     // this.verbose(`Голос принят ${data.steamID}`);
   }
 
+  /**
+   * Кидает варны всем сквад лидерам, также обновляет список игроков, \
+   * чтобы не пропустить какого-либо сквад лидера
+   * @param {string} message Текст сообщения
+   */
   async warnSquadLeaders(message) {
     await this.server.updatePlayerList()
 
@@ -337,7 +389,11 @@ class Vote {
     }
   }
 
-  verbose(data) {
-    console.log(data)
+  /**
+   * Логирование
+   * @param {*} message
+   */
+  verbose(message) {
+    console.log(message)
   }
 }
