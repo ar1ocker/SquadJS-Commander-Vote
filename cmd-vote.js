@@ -132,7 +132,7 @@ class Vote {
   }
 
   /**
-   * Старт голосование, с валидацией сообщения, поиском сквада для которого
+   * Старт голосования, с валидацией сообщения, поиском сквада для которого
    * запросили голосование и поиском игрока, который в текущий момент сквадом управляет
    * @param {*} data
    * @returns
@@ -188,7 +188,7 @@ class Vote {
   }
 
   /**
-   * ПОЛНАЯ обнуление объекта и остановка голосования, если оно идёт,
+   * ПОЛНОЕ обнуление объекта и остановка голосования, если оно идёт,
    * например используется при старте новый игры
    */
   clear() {
@@ -269,7 +269,7 @@ class Vote {
   }
 
   /**
-   * Валидирует команда на начало голосование, кидает варны, если необходимо
+   * Валидирует команду на начало голосования, кидает варны, если необходимо
    * @param {object} data Данные, которые были переданы от ивента (steamID, playerID, message, etc...)
    * @returns true если валидация успешна, false если нет
    */
@@ -351,17 +351,20 @@ class Vote {
    * @returns
    */
   async messageProcessing(data) {
-    if (!await this.messageValidate(data)) {
-      // this.verbose(`Сообщение голосования не прошло валидацию ${data.steamID}, ${data.message}`);
-      return;
-    }
-
     switch (data.message) {
       case '+':
+        if (!await this.messageValidate(data)) {
+          // this.verbose(`Сообщение голосования не прошло валидацию ${data.steamID}, ${data.message}`);
+          return;
+        }
         this.votes.set(data.player.squadID, true);
         await this.server.rcon.warn(data.steamID, 'Голос "за" принят')
         break;
       case '-':
+        if (!await this.messageValidate(data)) {
+          // this.verbose(`Сообщение голосования не прошло валидацию ${data.steamID}, ${data.message}`);
+          return;
+        }
         this.votes.set(data.player.squadID, false);
         await this.server.rcon.warn(data.steamID, 'Голос "против" принят')
         break;
