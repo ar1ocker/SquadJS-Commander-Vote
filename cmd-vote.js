@@ -60,6 +60,11 @@ export default class CMDVote extends BasePlugin {
         required: false,
         description: 'Таймаут между голосованиями в секундах',
         default: 100
+      },
+      blockCreateSquadAfterDemote: {
+        required: false,
+        description: 'Блокировать ли разжалованному игроку создание сквада до конца текущей карты',
+        default: true
       }
     };
   }
@@ -75,7 +80,7 @@ export default class CMDVote extends BasePlugin {
 
     this.timeStartLastGame = 0;
 
-    this.onStartVoteCommand = this.onStartVoteCommand.bind(this)
+    this.onStartVoteCommand = this.onStartVoteCommand.bind(this);
   }
 
   async onStartVoteCommand(data) {
@@ -97,7 +102,19 @@ export default class CMDVote extends BasePlugin {
         vote.clear()
       }
       this.timeStartLastGame = new Date().valueOf();
-    })
+    });
+
+    if (this.options.blockCreateSquadAfterDemote) {
+      this.server.on('SQUAD_CREATED', async (data) => {
+        if (data.player) {
+          const vote = this.votes.get(data.player.teamID);
+          if (vote.playerHasBeenDemoted(data.player.steamID)) {
+            await this.server.rcon.execute(`AdminRemovePlayerFromSquadById ${data.player.playerID}`);
+            await this.server.rcon.warn(data.player.steamID, 'В этом матче вам запрещено создавать сквад за данную сторону');
+          }
+        }
+      });
+    }
 
     this.server.on(
       `CHAT_COMMAND:${this.options.startVoteCommand.toLowerCase()}`,
@@ -126,9 +143,19 @@ class Vote {
     this.start = this.start.bind(this);
     this.warnSquadLeaders = this.warnSquadLeaders.bind(this);
     this.end = this.end.bind(this);
+    this.playerHasBeenDemoted = this.playerHasBeenDemoted.bind(this);
 
     this.periodicallyMessageTimer;
     this.endVoteTimer;
+
+    this.demotedPlayers = [];
+  }
+  /**
+   * Проверка, что игрок был разжалован в этом матче
+   * @param {*} player
+   */
+  playerHasBeenDemoted(steamID) {
+    return this.demotedPlayers.includes(steamID);
   }
 
   /**
@@ -195,7 +222,8 @@ class Vote {
     this.clearTimeoutsAndListeners()
     this.lastVoteTime = 0
     this.isStarted = false;
-    this.votes.clear()
+    this.votes.clear();
+    this.demotedPlayers = [];
     this.squadIDForDemotion = null;
     this.leaderForDemotion = null;
   }
@@ -228,6 +256,8 @@ class Vote {
     }
 
     await this.warnSquadLeaders(`Командир ${this.squadIDForDemotion} отряда снят с должности, за ${countPositively}, против ${countAgainst}, имели право голоса ${countValidSquads}`);
+
+    this.demotedPlayers.push(this.leaderForDemotion.steamID)
 
     // На всякий случай получаем пользователя, чтобы не кикнуть другого игрока,
     // т.к. удаление игрока из сквада идёт по переиспользуемому ID
