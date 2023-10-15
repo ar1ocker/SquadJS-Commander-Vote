@@ -148,14 +148,14 @@ class Vote {
     this.periodicallyMessageTimer;
     this.endVoteTimer;
 
-    this.demotedPlayers = [];
+    this.demotedPlayers = new Set();
   }
   /**
    * Проверка, что игрок был разжалован в этом матче
    * @param {*} player
    */
   playerHasBeenDemoted(steamID) {
-    return this.demotedPlayers.includes(steamID);
+    return this.demotedPlayers.has(steamID);
   }
 
   /**
@@ -223,7 +223,7 @@ class Vote {
     this.lastVoteTime = 0
     this.isStarted = false;
     this.votes.clear();
-    this.demotedPlayers = [];
+    this.demotedPlayers = new Set();
     this.squadIDForDemotion = null;
     this.leaderForDemotion = null;
   }
@@ -257,7 +257,7 @@ class Vote {
 
     await this.warnSquadLeaders(`Командир ${this.squadIDForDemotion} отряда снят с должности, за ${countPositively}, против ${countAgainst}, имели право голоса ${countValidSquads}`);
 
-    this.demotedPlayers.push(this.leaderForDemotion.steamID)
+    this.demotedPlayers.add(this.leaderForDemotion.steamID)
 
     // На всякий случай получаем пользователя, чтобы не кикнуть другого игрока,
     // т.к. удаление игрока из сквада идёт по переиспользуемому ID
