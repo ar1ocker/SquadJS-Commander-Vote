@@ -352,7 +352,7 @@ class Vote {
    * @returns true если прошло валидацию, false если нет
    */
   async messageValidate(data) {
-    if (data.player.isLeader === false || data.player.squad === null) {
+    if (data.player.teamID !== this.teamID || data.player.isLeader === false || data.player.squad === null) {
       return false;
     }
 
