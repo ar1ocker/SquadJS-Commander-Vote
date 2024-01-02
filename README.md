@@ -2,7 +2,7 @@
 
 Голосование запускаемое командиром стороны (CMD) для разжалования командира отряда
 
-Проверено на версии SquadJS 3.7.0
+Проверено на версии SquadJS 4.0.0 с патчами от https://github.com/fantinodavide/SquadJS/tree/eos-integration
 
 # Настройка
 
