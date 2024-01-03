@@ -108,7 +108,7 @@ export default class CMDVote extends BasePlugin {
       this.server.on('SQUAD_CREATED', async (data) => {
         if (data.player) {
           const vote = this.votes.get(data.player.teamID);
-          if (vote.playerHasBeenDemoted(data.player.steamID)) {
+          if (vote && vote.playerHasBeenDemoted(data.player.steamID)) {
             await this.server.rcon.execute(`AdminRemovePlayerFromSquadById ${data.player.playerID}`);
             await this.server.rcon.warn(data.player.steamID, 'В этом матче вам запрещено создавать сквад за данную сторону');
           }
