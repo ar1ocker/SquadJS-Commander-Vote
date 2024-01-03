@@ -29,7 +29,7 @@ export default class CMDVote extends BasePlugin {
       endVoteTimeout: {
         required: false,
         description: 'Время на голосование в секундах',
-        default: 60
+        default: 45
       },
       timeoutAfterNewMap: {
         required: false,
@@ -39,12 +39,12 @@ export default class CMDVote extends BasePlugin {
       minSquadSizeForVote: {
         required: false,
         description: 'Минимальный размер сквада для зачета голоса',
-        default: 4
+        default: 3
       },
       minSquadsForStart: {
         required: false,
         description: 'Минимальное количество сквадов за сторону после которого активна команда',
-        default: 4
+        default: 3
       },
       minSquadsVotePercent: {
         required: false,
@@ -54,12 +54,12 @@ export default class CMDVote extends BasePlugin {
       periodicallyMessageTimeout: {
         required: false,
         description: 'Время между сообщениями о ходе голосования, в секундах',
-        default: 8
+        default: 6
       },
       timeoutBetweenVote: {
         required: false,
         description: 'Таймаут между голосованиями в секундах',
-        default: 100
+        default: 15
       },
       blockCreateSquadAfterDemote: {
         required: false,
