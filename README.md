@@ -12,10 +12,6 @@ git clone https://github.com/ar1ocker/SquadJS-Commander-Vote/
 ```
 
 - Скопируйте файл `cmd-vote.js` в папку `<путь до squadjs на сервере>/squad-server/plugins/`
-- Примените патч находясь в папке `<путь до squadjs на сервере>/`
-```bash
-git apply <путь до файла patch> --verbose
-```
 
 - Добавьте новый плагин в config.json (раздел plugins)
 ```
