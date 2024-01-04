@@ -85,7 +85,7 @@ export default class CMDVote extends BasePlugin {
 
   async onStartVoteCommand(data) {
     if (Date.now() < this.timeStartLastGame + this.options.timeoutAfterNewMap * 1000) {
-      this.server.rcon.warn(data.steamID, `Голосование доступно через ${this.options.timeoutAfterNewMap} секунд после начала игры`);
+      await this.server.rcon.warn(data.steamID, `Голосование доступно через ${this.options.timeoutAfterNewMap} секунд после начала игры`);
       return;
     }
 
@@ -182,7 +182,7 @@ class Vote {
     // this.verbose(this.leaderForDemotion)
 
     if (this.leaderForDemotion === null) {
-      this.server.rcon.warn(data.steamID, 'Сквад не найден');
+      await this.server.rcon.warn(data.steamID, 'Сквад не найден');
       // this.verbose(`Сквад ${this.squadIDForDemotion} не найден`);
       return;
     }
