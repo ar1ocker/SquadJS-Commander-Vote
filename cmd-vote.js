@@ -94,7 +94,7 @@ export default class CMDVote extends BasePlugin {
       if (vote) {
         await vote.start(data)
       } else {
-        await this.server.warn(data.player.steamID, 'Не найден ID вашей команды, попробуйте позже')
+        await this.server.rcon.warn(data.player.steamID, 'Не найден ID вашей команды, попробуйте позже')
       }
     }
   }
