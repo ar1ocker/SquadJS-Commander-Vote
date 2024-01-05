@@ -91,7 +91,11 @@ export default class CMDVote extends BasePlugin {
 
     if (data.message) {
       const vote = this.votes.get(data.player.teamID)
-      await vote.start(data)
+      if (vote) {
+        await vote.start(data)
+      } else {
+        await this.server.warn(data.player.steamID, 'Не найден ID вашей команды, попробуйте позже')
+      }
     }
   }
 
