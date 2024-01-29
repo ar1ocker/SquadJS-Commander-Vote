@@ -1,7 +1,7 @@
 import BasePlugin from './base-plugin.js';
 
-
-const [TEAM_ONE_ID, TEAM_TWO_ID] = ['1', '2']
+const LOG_LEVEL = 3
+const [TEAM_ONE_ID, TEAM_TWO_ID] = [1, 2]
 
 export default class CMDVote extends BasePlugin {
   static get description() {
@@ -84,6 +84,7 @@ export default class CMDVote extends BasePlugin {
   }
 
   async onStartVoteCommand(data) {
+    this.verbose(LOG_LEVEL, 'Получено сообщение', data)
     if (Date.now() < this.timeStartLastGame + this.options.timeoutAfterNewMap * 1000) {
       await this.server.rcon.warn(data.steamID, `Голосование доступно через ${this.options.timeoutAfterNewMap} секунд после начала игры`);
       return;
@@ -91,9 +92,12 @@ export default class CMDVote extends BasePlugin {
 
     if (data.message) {
       const vote = this.votes.get(data.player.teamID)
+      this.verbose(LOG_LEVEL, 'Голосование к сообщению', vote)
       if (vote) {
+        this.verbose(LOG_LEVEL, 'Объект голосования найден. Стартуем голосование за снятие командира')
         await vote.start(data)
       } else {
+        this.verbose(LOG_LEVEL, 'Объект голосования не найден')
         await this.server.rcon.warn(data.player.steamID, 'Не найден ID вашей команды, попробуйте позже')
       }
     }
@@ -170,7 +174,6 @@ class Vote {
    */
   async start(data) {
     if (!await this.startValidate(data)) {
-      // this.verbose('Запуск голосования не прошел валидацию');
       return;
     }
 
@@ -178,19 +181,15 @@ class Vote {
 
     this.leaderForDemotion = await this.server.getPlayerByCondition(
       (player) => {
-        return player.teamID === this.teamID && player.squadID === this.squadIDForDemotion && player.isLeader;
+        return player.teamID === this.teamID && player.squadID == this.squadIDForDemotion && player.isLeader;
       },
       true
     );
 
-    // this.verbose(this.leaderForDemotion)
-
     if (this.leaderForDemotion === null) {
       await this.server.rcon.warn(data.steamID, 'Сквад не найден');
-      // this.verbose(`Сквад ${this.squadIDForDemotion} не найден`);
       return;
     }
-
 
     this.isStarted = true;
     this.votes.clear();
@@ -206,7 +205,6 @@ class Vote {
       `Снимаем командира ${this.squadIDForDemotion} отряда, ${this.leaderForDemotion.name}? +/- в чат`
     );
 
-    // this.verbose(`Голосование за снятие командира запущено`);
   }
 
   /**
@@ -246,8 +244,6 @@ class Vote {
     const countMinSquads = Math.floor(
       countValidSquads * this.options.minSquadsVotePercent
     );
-
-    // this.verbose(`Окончание голосования, за ${countPositively}, против ${countAgainst}. валидных ${countAllValid}, проголосовавших ${countAllVoted}`)
 
     if (countVotedSquads <= countMinSquads) {
       await this.warnSquadLeaders(`Командир ${this.squadIDForDemotion} отряда оставлен в должности, проголосовало меньше ${this.options.minSquadsVotePercent * 100}% отрядов (меньше ${countMinSquads})`);
@@ -309,7 +305,6 @@ class Vote {
    */
   async startValidate(data) {
     if (!(data.player.isLeader && data.player.squad.squadName === 'Command Squad')) {
-      // this.verbose('Не сквадлид или неправильное название сквада')
       return false;
     }
 
@@ -388,7 +383,6 @@ class Vote {
     switch (data.message) {
       case '+':
         if (!await this.messageValidate(data)) {
-          // this.verbose(`Сообщение голосования не прошло валидацию ${data.steamID}, ${data.message}`);
           return;
         }
         this.votes.set(data.player.squadID, true);
@@ -396,15 +390,12 @@ class Vote {
         break;
       case '-':
         if (!await this.messageValidate(data)) {
-          // this.verbose(`Сообщение голосования не прошло валидацию ${data.steamID}, ${data.message}`);
           return;
         }
         this.votes.set(data.player.squadID, false);
         await this.server.rcon.warn(data.steamID, 'Голос "против" принят')
         break;
     }
-
-    // this.verbose(`Голос принят ${data.steamID}`);
   }
 
   /**
@@ -424,13 +415,5 @@ class Vote {
     for (let player of players) {
       await this.server.rcon.warn(player.steamID, message);
     }
-  }
-
-  /**
-   * Логирование
-   * @param {*} message
-   */
-  verbose(message) {
-    console.log(message)
   }
 }
