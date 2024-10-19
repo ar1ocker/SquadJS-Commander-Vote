@@ -4,6 +4,8 @@ import y18n from "y18n";
 const LOG_LEVEL = 3;
 const [TEAM_ONE_ID, TEAM_TWO_ID] = [1, 2];
 
+let LOCALE = null;
+
 export default class CMDVote extends BasePlugin {
   static get description() {
     return "Voting for the demotion of the squad commander. It is started by the commander of the side";
@@ -82,7 +84,7 @@ export default class CMDVote extends BasePlugin {
   constructor(server, options, connectors) {
     super(server, options, connectors);
 
-    this.locale = y18n({
+    LOCALE = y18n({
       locale: this.options.language,
       directory: "./squad-server/plugins/cmd-vote-locales",
     }).__;
@@ -98,34 +100,32 @@ export default class CMDVote extends BasePlugin {
   }
 
   async onStartVoteCommand(data) {
-    this.verbose(LOG_LEVEL, this.locale`Message received`, data);
+    this.verbose(LOG_LEVEL, LOCALE`Message received`, data);
     if (
       Date.now() <
       this.timeStartLastGame + this.options.timeoutAfterNewMap * 1000
     ) {
       await this.server.rcon.warn(
         data.steamID,
-        this
-          .locale`Voting is available ${this.options.timeoutAfterNewMap} seconds after the game starts`
+        LOCALE`Voting is available ${this.options.timeoutAfterNewMap} seconds after the game starts`
       );
       return;
     }
 
     if (data.message) {
       const vote = this.votes.get(data.player.teamID);
-      this.verbose(LOG_LEVEL, this.locale`Voting to message`, vote);
+      this.verbose(LOG_LEVEL, LOCALE`Voting to message`, vote);
       if (vote) {
         this.verbose(
           LOG_LEVEL,
-          this
-            .locale`Voting object found. Start voting for the demote of the squad leader`
+          LOCALE`Voting object found. Start voting for the demote of the squad leader`
         );
         await vote.start(data);
       } else {
-        this.verbose(LOG_LEVEL, this.locale`Voting object not found`);
+        this.verbose(LOG_LEVEL, LOCALE`Voting object not found`);
         await this.server.rcon.warn(
           data.player.steamID,
-          this.locale`Your team ID was not found, please try again later`
+          LOCALE`Your team ID was not found, please try again later`
         );
       }
     }
@@ -150,8 +150,7 @@ export default class CMDVote extends BasePlugin {
             );
             await this.server.rcon.warn(
               data.player.steamID,
-              this
-                .locale`You are not allowed to create a squad for this side in this match`
+              LOCALE`You are not allowed to create a squad for this side in this match`
             );
           }
         }
@@ -225,7 +224,7 @@ class Vote {
     );
 
     if (this.leaderForDemotion === null) {
-      await this.server.rcon.warn(data.steamID, this.locale`Squad not found`);
+      await this.server.rcon.warn(data.steamID, LOCALE`Squad not found`);
       return;
     }
 
@@ -239,15 +238,13 @@ class Vote {
     );
 
     await this.warnSquadLeaders(
-      this
-        .locale`Demote squad leader ${this.squadIDForDemotion}, ${this.leaderForDemotion.name}? +/- to chat`
+      LOCALE`Demote squad leader ${this.squadIDForDemotion}, ${this.leaderForDemotion.name}? +/- to chat`
     );
 
     this.periodicallyMessageTimer = setInterval(
       this.warnSquadLeaders,
       this.options.periodicallyMessageTimeout * 1000,
-      this
-        .locale`Demote squad leader ${this.squadIDForDemotion}, ${this.leaderForDemotion.name}? +/- to chat`
+      LOCALE`Demote squad leader ${this.squadIDForDemotion}, ${this.leaderForDemotion.name}? +/- to chat`
     );
   }
 
@@ -292,23 +289,20 @@ class Vote {
 
     if (countVotedSquads <= countMinSquads) {
       await this.warnSquadLeaders(
-        this
-          .locale`Squad leader ${this.squadIDForDemotion} retained, less than ${this.options.minSquadsVotePercent * 100}% of squads voted (less than ${countMinSquads})`
+        LOCALE`Squad leader ${this.squadIDForDemotion} retained, less than ${this.options.minSquadsVotePercent * 100}% of squads voted (less than ${countMinSquads})`
       );
       return;
     }
 
     if (countPositively <= countAgainst) {
       await this.warnSquadLeaders(
-        this
-          .locale`Squad leader ${this.squadIDForDemotion} retained, ${countPositively} vs ${countAgainst}, had ${countValidSquads} eligible to vote`
+        LOCALE`Squad leader ${this.squadIDForDemotion} retained, ${countPositively} vs ${countAgainst}, had ${countValidSquads} eligible to vote`
       );
       return;
     }
 
     await this.warnSquadLeaders(
-      this
-        .locale`Squad leader ${this.squadIDForDemotion} was demoted, ${countPositively} vs ${countAgainst}, had ${countValidSquads} eligible to vote`
+      LOCALE`Squad leader ${this.squadIDForDemotion} was demoted, ${countPositively} vs ${countAgainst}, had ${countValidSquads} eligible to vote`
     );
 
     this.demotedPlayers.add(this.leaderForDemotion.steamID);
@@ -374,15 +368,14 @@ class Vote {
     if (isNaN(Number(data.message))) {
       await this.server.rcon.warn(
         data.steamID,
-        this
-          .locale`Command should be in the format - !${this.options.startVoteCommand} <squad number>`
+        LOCALE`Command should be in the format - !${this.options.startVoteCommand} <squad number>`
       );
     }
 
     if (this.isStarted) {
       await this.server.rcon.warn(
         data.steamID,
-        this.locale`Voting is already in progress`
+        LOCALE`Voting is already in progress`
       );
       return false;
     }
@@ -393,8 +386,7 @@ class Vote {
     ) {
       await this.server.rcon.warn(
         data.steamID,
-        this
-          .locale`Voting is only available once every ${this.options.timeoutBetweenVote} seconds`
+        LOCALE`Voting is only available once every ${this.options.timeoutBetweenVote} seconds`
       );
       return false;
     }
@@ -406,8 +398,7 @@ class Vote {
     if (squads.length < this.options.minSquadsForStart) {
       await this.server.rcon.warn(
         data.steamID,
-        this
-          .locale`Voting is available when there are at least ${this.options.minSquadsForStart} squads`
+        LOCALE`Voting is available when there are at least ${this.options.minSquadsForStart} squads`
       );
       return false;
     }
@@ -432,7 +423,7 @@ class Vote {
     if (data.player.squadID === this.squadIDForDemotion) {
       await this.server.rcon.warn(
         data.steamID,
-        this.locale`The vote of this squad is not counted`
+        LOCALE`The vote of this squad is not counted`
       );
       return false;
     }
@@ -440,8 +431,7 @@ class Vote {
     if (data.player.squad.size < this.options.minSquadSizeForVote) {
       await this.server.rcon.warn(
         data.steamID,
-        this
-          .locale`The minimum squad size for voting is ${this.options.minSquadSizeForVote}`
+        LOCALE`The minimum squad size for voting is ${this.options.minSquadSizeForVote}`
       );
       return false;
     }
@@ -463,7 +453,7 @@ class Vote {
         this.votes.set(data.player.squadID, true);
         await this.server.rcon.warn(
           data.steamID,
-          this.locale`A positive vote is accepted`
+          LOCALE`A positive vote is accepted`
         );
         break;
       case "-":
@@ -473,7 +463,7 @@ class Vote {
         this.votes.set(data.player.squadID, false);
         await this.server.rcon.warn(
           data.steamID,
-          this.locale`A negative vote is accepted`
+          LOCALE`A negative vote is accepted`
         );
         break;
     }
