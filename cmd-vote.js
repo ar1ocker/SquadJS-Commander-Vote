@@ -1,13 +1,11 @@
-import BasePlugin from './base-plugin.js';
+import BasePlugin from "./base-plugin.js";
 
-const LOG_LEVEL = 3
-const [TEAM_ONE_ID, TEAM_TWO_ID] = [1, 2]
+const LOG_LEVEL = 3;
+const [TEAM_ONE_ID, TEAM_TWO_ID] = [1, 2];
 
 export default class CMDVote extends BasePlugin {
   static get description() {
-    return (
-      'Голосование за разжалование командира сквада. Запускается командиром стороны'
-    );
+    return "Голосование за разжалование командира сквада. Запускается командиром стороны";
   }
 
   static get defaultEnabled() {
@@ -18,54 +16,58 @@ export default class CMDVote extends BasePlugin {
     return {
       startVoteCommand: {
         required: false,
-        description: 'Команда начала голосования за кик командира',
-        default: 'cmdvote'
-        },
+        description: "Команда начала голосования за кик командира",
+        default: "cmdvote",
+      },
       ignoreChats: {
         required: false,
-        description: 'Пропускаемые чаты',
-        default: ['ChatSquad', 'ChatAdmin']
+        description: "Пропускаемые чаты",
+        default: ["ChatSquad", "ChatAdmin"],
       },
       endVoteTimeout: {
         required: false,
-        description: 'Время на голосование в секундах',
-        default: 45
+        description: "Время на голосование в секундах",
+        default: 45,
       },
       timeoutAfterNewMap: {
         required: false,
-        description: 'Время после начала новой карты в которое недоступна команда',
-        default: 300
+        description:
+          "Время после начала новой карты в которое недоступна команда",
+        default: 300,
       },
       minSquadSizeForVote: {
         required: false,
-        description: 'Минимальный размер сквада для зачета голоса',
-        default: 3
+        description: "Минимальный размер сквада для зачета голоса",
+        default: 3,
       },
       minSquadsForStart: {
         required: false,
-        description: 'Минимальное количество сквадов за сторону после которого активна команда',
-        default: 3
+        description:
+          "Минимальное количество сквадов за сторону после которого активна команда",
+        default: 3,
       },
       minSquadsVotePercent: {
         required: false,
-        description: 'Минимальный процент проголосовавших для зачета результата, дробное значение',
-        default: 0.40
+        description:
+          "Минимальный процент проголосовавших для зачета результата, дробное значение",
+        default: 0.4,
       },
       periodicallyMessageTimeout: {
         required: false,
-        description: 'Время между сообщениями о ходе голосования, в секундах',
-        default: 6
+        description: "Время между сообщениями о ходе голосования, в секундах",
+        default: 6,
       },
       timeoutBetweenVote: {
         required: false,
-        description: 'Таймаут между голосованиями в секундах',
-        default: 15
+        description: "Таймаут между голосованиями в секундах",
+        default: 15,
       },
       blockCreateSquadAfterDemote: {
         required: false,
-        description: 'Блокировать ли разжалованному игроку создание сквада до конца текущей карты',
-        default: true
-      }
+        description:
+          "Блокировать ли разжалованному игроку создание сквада до конца текущей карты",
+        default: true,
+      },
     };
   }
 
@@ -73,10 +75,9 @@ export default class CMDVote extends BasePlugin {
     super(server, options, connectors);
 
     this.votes = new Map([
-        [TEAM_ONE_ID, new Vote(TEAM_ONE_ID, this.server, this.options)],
-        [TEAM_TWO_ID, new Vote(TEAM_TWO_ID, this.server, this.options)]
-      ]
-    );
+      [TEAM_ONE_ID, new Vote(TEAM_ONE_ID, this.server, this.options)],
+      [TEAM_TWO_ID, new Vote(TEAM_TWO_ID, this.server, this.options)],
+    ]);
 
     this.timeStartLastGame = 0;
 
@@ -84,41 +85,58 @@ export default class CMDVote extends BasePlugin {
   }
 
   async onStartVoteCommand(data) {
-    this.verbose(LOG_LEVEL, 'Получено сообщение', data)
-    if (Date.now() < this.timeStartLastGame + this.options.timeoutAfterNewMap * 1000) {
-      await this.server.rcon.warn(data.steamID, `Голосование доступно через ${this.options.timeoutAfterNewMap} секунд после начала игры`);
+    this.verbose(LOG_LEVEL, "Получено сообщение", data);
+    if (
+      Date.now() <
+      this.timeStartLastGame + this.options.timeoutAfterNewMap * 1000
+    ) {
+      await this.server.rcon.warn(
+        data.steamID,
+        `Голосование доступно через ${this.options.timeoutAfterNewMap} секунд после начала игры`
+      );
       return;
     }
 
     if (data.message) {
-      const vote = this.votes.get(data.player.teamID)
-      this.verbose(LOG_LEVEL, 'Голосование к сообщению', vote)
+      const vote = this.votes.get(data.player.teamID);
+      this.verbose(LOG_LEVEL, "Голосование к сообщению", vote);
       if (vote) {
-        this.verbose(LOG_LEVEL, 'Объект голосования найден. Стартуем голосование за снятие командира')
-        await vote.start(data)
+        this.verbose(
+          LOG_LEVEL,
+          "Объект голосования найден. Стартуем голосование за снятие командира"
+        );
+        await vote.start(data);
       } else {
-        this.verbose(LOG_LEVEL, 'Объект голосования не найден')
-        await this.server.rcon.warn(data.player.steamID, 'Не найден ID вашей команды, попробуйте позже')
+        this.verbose(LOG_LEVEL, "Объект голосования не найден");
+        await this.server.rcon.warn(
+          data.player.steamID,
+          "Не найден ID вашей команды, попробуйте позже"
+        );
       }
     }
   }
 
   async mount() {
     // Если во время голосования матч закончился - убираем все таймеры и сообщения
-    this.server.on('NEW_GAME', async () => {
+    this.server.on("NEW_GAME", async () => {
       for (let vote of this.votes.values()) {
-        vote.clear()
+        vote.clear();
       }
       this.timeStartLastGame = new Date().valueOf();
     });
 
     if (this.options.blockCreateSquadAfterDemote) {
-      this.server.on('SQUAD_CREATED', async (data) => {
+      this.server.on("SQUAD_CREATED", async (data) => {
         if (data.player) {
           const vote = this.votes.get(data.player.teamID);
           if (vote && vote.playerHasBeenDemoted(data.player.steamID)) {
-            await this.server.rcon.execute(`AdminRemovePlayerFromSquadById ${data.player.playerID}`);
-            await this.server.rcon.warn(data.player.steamID, 'В этом матче вам запрещено создавать сквад за данную сторону');
+            await this.server.rcon.execute(
+              `AdminRemovePlayerFromSquadById ${data.player.playerID}`
+            );
+            await this.server.rcon.warn(
+              data.player.steamID,
+              "В этом матче вам запрещено создавать сквад за данную сторону"
+            );
           }
         }
       });
@@ -173,7 +191,7 @@ class Vote {
    * @returns
    */
   async start(data) {
-    if (!await this.startValidate(data)) {
+    if (!(await this.startValidate(data))) {
       return;
     }
 
@@ -181,39 +199,47 @@ class Vote {
 
     this.leaderForDemotion = await this.server.getPlayerByCondition(
       (player) => {
-        return player.teamID === this.teamID && player.squadID == this.squadIDForDemotion && player.isLeader;
+        return (
+          player.teamID === this.teamID &&
+          player.squadID == this.squadIDForDemotion &&
+          player.isLeader
+        );
       },
       true
     );
 
     if (this.leaderForDemotion === null) {
-      await this.server.rcon.warn(data.steamID, 'Сквад не найден');
+      await this.server.rcon.warn(data.steamID, "Сквад не найден");
       return;
     }
 
     this.isStarted = true;
     this.votes.clear();
 
-    this.server.on('CHAT_MESSAGE', this.messageProcessing);
-    this.endVoteTimer = setTimeout(this.end, this.options.endVoteTimeout * 1000);
+    this.server.on("CHAT_MESSAGE", this.messageProcessing);
+    this.endVoteTimer = setTimeout(
+      this.end,
+      this.options.endVoteTimeout * 1000
+    );
 
-    await this.warnSquadLeaders(`Снимаем командира ${this.squadIDForDemotion} отряда, ${this.leaderForDemotion.name}? +/- в чат`)
+    await this.warnSquadLeaders(
+      `Снимаем командира ${this.squadIDForDemotion} отряда, ${this.leaderForDemotion.name}? +/- в чат`
+    );
 
     this.periodicallyMessageTimer = setInterval(
       this.warnSquadLeaders,
       this.options.periodicallyMessageTimeout * 1000,
       `Снимаем командира ${this.squadIDForDemotion} отряда, ${this.leaderForDemotion.name}? +/- в чат`
     );
-
   }
 
   /**
    * Удаление всех таймаутов и остановка коллбеков
    */
   clearTimeoutsAndListeners() {
-    clearInterval(this.periodicallyMessageTimer)
-    clearTimeout(this.endVoteTimer)
-    this.server.removeListener('CHAT_MESSAGE', this.messageProcessing)
+    clearInterval(this.periodicallyMessageTimer);
+    clearTimeout(this.endVoteTimer);
+    this.server.removeListener("CHAT_MESSAGE", this.messageProcessing);
   }
 
   /**
@@ -221,8 +247,8 @@ class Vote {
    * например используется при старте новый игры
    */
   clear() {
-    this.clearTimeoutsAndListeners()
-    this.lastVoteTime = 0
+    this.clearTimeoutsAndListeners();
+    this.lastVoteTime = 0;
     this.isStarted = false;
     this.votes.clear();
     this.demotedPlayers = new Set();
@@ -235,35 +261,47 @@ class Vote {
    * @returns
    */
   async end() {
-    this.clearTimeoutsAndListeners()
+    this.clearTimeoutsAndListeners();
     this.lastVoteTime = new Date().valueOf();
     this.isStarted = false;
 
-    let [countPositively, countAgainst, countValidSquads, countVotedSquads] = await this.getResult();
+    let [countPositively, countAgainst, countValidSquads, countVotedSquads] =
+      await this.getResult();
 
     const countMinSquads = Math.floor(
       countValidSquads * this.options.minSquadsVotePercent
     );
 
     if (countVotedSquads <= countMinSquads) {
-      await this.warnSquadLeaders(`Командир ${this.squadIDForDemotion} отряда оставлен в должности, проголосовало меньше ${this.options.minSquadsVotePercent * 100}% отрядов (меньше ${countMinSquads})`);
+      await this.warnSquadLeaders(
+        `Командир ${this.squadIDForDemotion} отряда оставлен в должности, проголосовало меньше ${this.options.minSquadsVotePercent * 100}% отрядов (меньше ${countMinSquads})`
+      );
       return;
     }
 
     if (countPositively <= countAgainst) {
-      await this.warnSquadLeaders(`Командир ${this.squadIDForDemotion} отряда оставлен в должности, за ${countPositively}, против ${countAgainst}, имели право голоса ${countValidSquads}`);
+      await this.warnSquadLeaders(
+        `Командир ${this.squadIDForDemotion} отряда оставлен в должности, за ${countPositively}, против ${countAgainst}, имели право голоса ${countValidSquads}`
+      );
       return;
     }
 
-    await this.warnSquadLeaders(`Командир ${this.squadIDForDemotion} отряда снят с должности, за ${countPositively}, против ${countAgainst}, имели право голоса ${countValidSquads}`);
+    await this.warnSquadLeaders(
+      `Командир ${this.squadIDForDemotion} отряда снят с должности, за ${countPositively}, против ${countAgainst}, имели право голоса ${countValidSquads}`
+    );
 
-    this.demotedPlayers.add(this.leaderForDemotion.steamID)
+    this.demotedPlayers.add(this.leaderForDemotion.steamID);
 
     // На всякий случай получаем пользователя, чтобы не кикнуть другого игрока,
     // т.к. удаление игрока из сквада идёт по переиспользуемому ID
-    const player = await this.server.getPlayerBySteamID(this.leaderForDemotion.steamID, true);
+    const player = await this.server.getPlayerBySteamID(
+      this.leaderForDemotion.steamID,
+      true
+    );
     if (player) {
-      await this.server.rcon.execute(`AdminRemovePlayerFromSquadById ${player.playerID}`);
+      await this.server.rcon.execute(
+        `AdminRemovePlayerFromSquadById ${player.playerID}`
+      );
     }
   }
 
@@ -274,14 +312,16 @@ class Vote {
    * Количество сквадов которые проголосовали (из тех, что имеют на это право)]
    */
   async getResult() {
-    await this.server.updateSquadList()
-    const validSquads = await this.server.squads.filter(
-      (data) => {
-        return data.teamID === this.teamID && data.size >= this.options.minSquadSizeForVote && data.squadID !== this.squadIDForDemotion;
-      }
-    );
+    await this.server.updateSquadList();
+    const validSquads = await this.server.squads.filter((data) => {
+      return (
+        data.teamID === this.teamID &&
+        data.size >= this.options.minSquadSizeForVote &&
+        data.squadID !== this.squadIDForDemotion
+      );
+    });
 
-    let validSquadsIds = validSquads.map(squad => squad.squadID)
+    let validSquadsIds = validSquads.map((squad) => squad.squadID);
 
     let countAgainst = 0;
     let countPositively = 0;
@@ -293,9 +333,9 @@ class Vote {
       }
     }
 
-    const countAllVoted = countPositively + countAgainst
+    const countAllVoted = countPositively + countAgainst;
 
-    return [countPositively, countAgainst, countAllValid, countAllVoted]
+    return [countPositively, countAgainst, countAllValid, countAllVoted];
   }
 
   /**
@@ -304,7 +344,9 @@ class Vote {
    * @returns true если валидация успешна, false если нет
    */
   async startValidate(data) {
-    if (!(data.player.isLeader && data.player.squad.squadName === 'Command Squad')) {
+    if (
+      !(data.player.isLeader && data.player.squad.squadName === "Command Squad")
+    ) {
       return false;
     }
 
@@ -312,15 +354,18 @@ class Vote {
       await this.server.rcon.warn(
         data.steamID,
         `Команда должна быть в формате - !${this.options.startVoteCommand} <номер сквада>`
-      )
+      );
     }
 
     if (this.isStarted) {
-      await this.server.rcon.warn(data.steamID, 'Голосование уже идёт');
+      await this.server.rcon.warn(data.steamID, "Голосование уже идёт");
       return false;
     }
 
-    if (Date.now() < this.lastVoteTime.valueOf() + this.options.timeoutBetweenVote * 1000) {
+    if (
+      Date.now() <
+      this.lastVoteTime.valueOf() + this.options.timeoutBetweenVote * 1000
+    ) {
       await this.server.rcon.warn(
         data.steamID,
         `Голосование доступно только раз в ${this.options.timeoutBetweenVote} секунд`
@@ -328,11 +373,9 @@ class Vote {
       return false;
     }
 
-    const squads = await this.server.squads.filter(
-      (squad) => {
-        return squad.teamID === this.teamID;
-      }
-    );
+    const squads = await this.server.squads.filter((squad) => {
+      return squad.teamID === this.teamID;
+    });
 
     if (squads.length < this.options.minSquadsForStart) {
       await this.server.rcon.warn(
@@ -351,14 +394,18 @@ class Vote {
    * @returns true если прошло валидацию, false если нет
    */
   async messageValidate(data) {
-    if (data.player.teamID !== this.teamID || data.player.isLeader === false || data.player.squad === null) {
+    if (
+      data.player.teamID !== this.teamID ||
+      data.player.isLeader === false ||
+      data.player.squad === null
+    ) {
       return false;
     }
 
     if (data.player.squadID === this.squadIDForDemotion) {
       await this.server.rcon.warn(
         data.steamID,
-        'Голос данного сквада не учитывается'
+        "Голос данного сквада не учитывается"
       );
       return false;
     }
@@ -381,19 +428,19 @@ class Vote {
    */
   async messageProcessing(data) {
     switch (data.message) {
-      case '+':
-        if (!await this.messageValidate(data)) {
+      case "+":
+        if (!(await this.messageValidate(data))) {
           return;
         }
         this.votes.set(data.player.squadID, true);
-        await this.server.rcon.warn(data.steamID, 'Голос "за" принят')
+        await this.server.rcon.warn(data.steamID, 'Голос "за" принят');
         break;
-      case '-':
-        if (!await this.messageValidate(data)) {
+      case "-":
+        if (!(await this.messageValidate(data))) {
           return;
         }
         this.votes.set(data.player.squadID, false);
-        await this.server.rcon.warn(data.steamID, 'Голос "против" принят')
+        await this.server.rcon.warn(data.steamID, 'Голос "против" принят');
         break;
     }
   }
@@ -404,13 +451,11 @@ class Vote {
    * @param {string} message Текст сообщения
    */
   async warnSquadLeaders(message) {
-    await this.server.updatePlayerList()
+    await this.server.updatePlayerList();
 
-    const players = await this.server.players.filter(
-      (data) => {
-        return data.teamID === this.teamID && data.isLeader;
-      }
-    );
+    const players = await this.server.players.filter((data) => {
+      return data.teamID === this.teamID && data.isLeader;
+    });
 
     for (let player of players) {
       await this.server.rcon.warn(player.steamID, message);
