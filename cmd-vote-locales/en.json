@@ -1,0 +1,22 @@
+{
+  "Message received": "Message received",
+  "Voting is available %s seconds after the game starts": "Voting is available %s seconds after the game starts",
+  "Voting to message": "Voting to message",
+  "Voting object found. Start voting for the demote of the squad leader": "Voting object found. Start voting for the demote of the squad leader",
+  "Voting object not found": "Voting object not found",
+  "Your team ID was not found, please try again later": "Your team ID was not found, please try again later",
+  "You are not allowed to create a squad for this side in this match": "You are not allowed to create a squad for this side in this match",
+  "Squad not found": "Squad not found",
+  "Demote squad leader %s, %s? +/- to chat": "Demote squad leader %s, %s? +/- to chat",
+  "Squad leader %s retained, less than %s% of squads voted (less than %s)": "Squad leader %s retained, less than %s% of squads voted (less than %s)",
+  "Squad leader %s retained, %s vs %s, had %s eligible to vote": "Squad leader %s retained, %s vs %s, had %s eligible to vote",
+  "Squad leader %s was demoted, %s vs %s, had %s eligible to vote": "Squad leader %s was demoted, %s vs %s, had %s eligible to vote",
+  "Command should be in the format - !%s <squad number>": "Command should be in the format - !%s <squad number>",
+  "Voting is already in progress": "Voting is already in progress",
+  "Voting is only available once every %s seconds": "Voting is only available once every %s seconds",
+  "Voting is available when there are at least %s squads": "Voting is available when there are at least %s squads",
+  "The vote of this squad is not counted": "The vote of this squad is not counted",
+  "The minimum squad size for voting is %s": "The minimum squad size for voting is %s",
+  "A positive vote is accepted": "A positive vote is accepted",
+  "A negative vote is accepted": "A negative vote is accepted"
+}

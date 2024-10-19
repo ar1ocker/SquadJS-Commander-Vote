@@ -1,0 +1,22 @@
+{
+  "Message received": "Получено сообщение",
+  "Voting is available %s seconds after the game starts": "Голосование доступно через %s секунд после начала игры",
+  "Voting to message": "Голосование к сообщению",
+  "Voting object found. Start voting for the demote of the squad leader": "Объект голосования найден. Стартуем голосование за снятие командира",
+  "Voting object not found": "Объект голосования не найден",
+  "Your team ID was not found, please try again later": "Не найден ID вашей команды, попробуйте позже",
+  "You are not allowed to create a squad for this side in this match": "В этом матче вам запрещено создавать сквад за данную сторону",
+  "Squad not found": "Сквад не найден",
+  "Demote squad leader %s, %s? +/- to chat": "Снимаем командира %s отряда, %s? +/- в чат",
+  "Squad leader %s retained, less than %s% of squads voted (less than %s)": "Командир %s отряда оставлен в должности, проголосовало меньше %s% отрядов (меньше %s)",
+  "Squad leader %s retained, %s vs %s, had %s eligible to vote": "Командир %s отряда оставлен в должности, за %s, против %s, имели право голоса %s",
+  "Squad leader %s was demoted, %s vs %s, had %s eligible to vote": "Командир %s отряда снят с должности, за %s, против %s, имели право голоса %s",
+  "Command should be in the format - !%s <squad number>": "Команда должна быть в формате - !%s <номер сквада>",
+  "Voting is already in progress": "Голосование уже идёт",
+  "Voting is only available once every %s seconds": "Голосование доступно только раз в %s секунд",
+  "Voting is available when there are at least %s squads": "Голосование доступно при наличии минимум %s сквадов",
+  "The vote of this squad is not counted": "Голос данного сквада не учитывается",
+  "The minimum squad size for voting is %s": "Минимальный размер сквада для голосования - %s",
+  "A positive vote is accepted": "Голос \"за\" принят",
+  "A negative vote is accepted": "Голос \"против\" принят"
+}
