@@ -12,6 +12,8 @@ Tested on SquadJS 4.1.0 https://github.com/Team-Silver-Sphere/SquadJS/releases/t
 
 The plugin realizes that the requesting !cmdvote is the commander of the side by two things - isLeader, which is obtained from Rcon and the name of the squad Command Squad. If there is no problem with isLeader, then the name can be faked through the command in the console `CreateSquad 'Command Squad' false`, it is important to monitor and block the creation of squads with such a name so that ordinary players can not abuse the voting system.
 
+Ready plugin for protection - https://github.com/ar1ocker/SquadJS-Command-Squad-Name-Protection
+
 # Settings
 
 - Download the repository
