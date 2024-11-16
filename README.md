@@ -16,6 +16,18 @@ Ready plugin for protection - https://github.com/ar1ocker/SquadJS-Command-Squad-
 
 # Settings
 
+- Download the repository SquadJS Random Patches
+
+```
+git clone https://github.com/ar1ocker/SquadJS-Random-Patches
+```
+
+- Apply the new-emit.patch while in the `<path to squadjs on the server>/` folder.
+
+```
+git apply <path to patch file> --verbose
+```
+
 - Download the repository
 ```bash
 git clone https://github.com/ar1ocker/SquadJS-Commander-Vote/
@@ -49,6 +61,18 @@ For other settings, see the `cmd-vote.js` file.
 Плагин понимает, что запрашивающий !cmdvote является командиром стороны по двум вещам - isLeader которые получается из Rcon и названию сквада Command Squad. Если с isLeader проблем нет, то вот название можно подделать через команду в консоли `CreateSquad 'Command Squad' false`, важно отслеживать и блокировать создание сквадов с таким названием дабы обычные игроки не могли абьюзить систему голосования
 
 # Настройка
+
+- Скачайте репозиторий SquadJS Random Patches
+
+```
+git clone https://github.com/ar1ocker/SquadJS-Random-Patches
+```
+
+- Примените патч new-emit.patch находясь в папке `<путь до squadjs на сервере>/`
+
+```
+git apply <путь до файла patch> --verbose
+```
 
 - Скачайте репозиторий
 ```bash

@@ -141,7 +141,7 @@ export default class CMDVote extends BasePlugin {
     });
 
     if (this.options.blockCreateSquadAfterDemote) {
-      this.server.on("SQUAD_CREATED", async (data) => {
+      this.server.on("PLAYER_NOW_IS_LEADER", async (data) => {
         if (data.player) {
           const vote = this.votes.get(data.player.teamID);
           if (vote && vote.playerHasBeenDemoted(data.player.steamID)) {
